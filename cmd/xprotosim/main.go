@@ -1,0 +1,460 @@
+package main
+
+import (
+	"bufio"
+	"flag"
+	"fmt"
+	"log"
+	"math/rand"
+	"os"
+	"strings"
+	"text/template"
+	"time"
+
+	"github.com/gorilla/websocket"
+	"github.com/matrix-org/xproto/cmd/xprotosim/simulator"
+	"github.com/matrix-org/xproto/router"
+	"github.com/matrix-org/xproto/util"
+	"go.uber.org/atomic"
+
+	"net/http"
+)
+
+const maxBatchSize int = 50
+
+var ConnUID atomic.Uint64 = atomic.Uint64{}
+
+func main() {
+	go func() {
+		panic(http.ListenAndServe(":65432", nil))
+	}()
+
+	filename := flag.String("filename", "cmd/xprotosim/graphs/empty.txt", "the file that describes the simulated topology")
+	sockets := flag.Bool("sockets", false, "use real TCP sockets to connect simulated nodes")
+	chaos := flag.Int("chaos", 0, "randomly connect and disconnect a certain number of links")
+	acceptCommands := flag.Bool("acceptCommands", true, "whether the sim can be commanded from the ui")
+	hopLimiting := flag.Bool("hopLimiting", false, "whether to enable hop limiting for protocol and overlay frames")
+	flag.Parse()
+
+	file, err := os.Open(*filename)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+
+	nodes := map[string]struct{}{}
+	wires := map[string]map[string]bool{}
+
+	for scanner.Scan() {
+		tokens := strings.Split(strings.TrimSpace(scanner.Text()), " ")
+		for _, t := range tokens {
+			nodes[t] = struct{}{}
+		}
+		for i := 1; i < len(tokens); i++ {
+			a, b := tokens[i-1], tokens[i]
+			if _, ok := wires[a]; !ok {
+				wires[a] = map[string]bool{}
+			}
+			if _, ok := wires[b][a]; ok {
+				continue
+			}
+			wires[a][b] = false
+		}
+	}
+
+	log := log.New(os.Stdout, "\u001b[36m***\u001b[0m ", 0)
+	sim := simulator.NewSimulator(log, *sockets, *acceptCommands, *hopLimiting)
+	configureHTTPRouting(log, sim)
+
+	for n := range nodes {
+		if err := sim.CreateNode(n, simulator.DefaultNode); err != nil {
+			panic(err)
+		}
+		sim.StartNodeEventHandler(n, simulator.DefaultNode)
+	}
+
+	for a, w := range wires {
+		for b := range w {
+			if a == b {
+				continue
+			}
+			log.Printf("Connecting %q and %q...\n", a, b)
+			err := sim.ConnectNodes(a, b)
+			wires[a][b] = err == nil
+			if err != nil {
+				continue
+			}
+		}
+	}
+
+	sim.GenerateNetworkGraph()
+	sim.UpdateRealDistances()
+
+	if chaos != nil && *chaos > 0 {
+		rand.Seed(time.Now().UnixNano())
+		maxintv, maxswing := 20, int32(*chaos)
+		var swing atomic.Int32
+
+		// Chaos disconnector
+		go func() {
+			for {
+				if swing.Load() > -maxswing {
+				parentloop:
+					for a, w := range wires {
+						for b, s := range w {
+							if !s {
+								continue
+							}
+							if err := sim.DisconnectNodes(a, b); err == nil {
+								wires[a][b] = false
+								swing.Dec()
+								break parentloop
+							}
+						}
+					}
+				}
+				time.Sleep(time.Second * time.Duration(rand.Intn(maxintv)))
+			}
+		}()
+
+		// Chaos connector
+		go func() {
+			for {
+				if swing.Load() < maxswing {
+				parentloop:
+					for a, w := range wires {
+						for b, s := range w {
+							if s {
+								continue
+							}
+							if err := sim.ConnectNodes(a, b); err == nil {
+								wires[a][b] = true
+								swing.Inc()
+								break parentloop
+							}
+						}
+					}
+				}
+				time.Sleep(time.Second * time.Duration(rand.Intn(maxintv)))
+			}
+		}()
+	}
+
+	log.Println("Configuring HTTP listener")
+
+	select {}
+}
+
+func configureHTTPRouting(log *log.Logger, sim *simulator.Simulator) {
+	var upgrader = websocket.Upgrader{}
+	http.Handle("/ui/", http.StripPrefix("/ui/", http.FileServer(http.Dir("./cmd/xprotosim/ui"))))
+
+	http.DefaultServeMux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		log.Println("New websocket connection established")
+
+		connID := ConnUID.Inc()
+		go userProxyReporter(conn, connID, sim)
+		if sim.AcceptCommands {
+			go userProxyCommander(conn, connID, sim)
+		}
+	})
+
+	http.DefaultServeMux.HandleFunc("/simws", func(w http.ResponseWriter, r *http.Request) {
+		var n *simulator.Node
+		nodeID := r.URL.Query().Get("node")
+		if nodeID != "" {
+			n = sim.Node(nodeID)
+		} else {
+			for id, node := range sim.Nodes() {
+				if node != nil {
+					n, nodeID = node, id
+					break
+				}
+			}
+		}
+		if n == nil {
+			w.WriteHeader(404)
+			return
+		}
+		c, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			return
+		}
+		conn := util.WrapWebSocketConn(c)
+		if _, err = n.Connect(
+			conn,
+			router.ConnectionZone("websocket"),
+			router.ConnectionPeerType(router.PeerTypeRemote),
+		); err != nil {
+			return
+		}
+		log.Printf("WebSocket peer %q connected to sim node %q\n", c.RemoteAddr(), nodeID)
+	})
+
+	http.DefaultServeMux.HandleFunc("/manhole", func(w http.ResponseWriter, r *http.Request) {
+		nodeID := r.URL.Query().Get("node")
+		node := sim.Node(nodeID)
+		if node == nil {
+			w.WriteHeader(404)
+			return
+		}
+		node.SimRouter.ManholeHandler(w, r)
+	})
+
+	http.DefaultServeMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		_ = template.Must(template.ParseFiles("./cmd/xprotosim/page.html")).Execute(w, "")
+	})
+}
+
+func userProxyReporter(conn *websocket.Conn, connID uint64, sim *simulator.Simulator) {
+	log := log.New(os.Stdout, fmt.Sprintf("\u001b[38;5;93mWsSimReporter::%d ***\u001b[0m ", connID), 0)
+	log.Println("Listening to sim for updates...")
+
+	// Subscribe to sim events and grab snapshot of current state
+	ch := make(chan simulator.SimEvent)
+	state := sim.State.Subscribe(ch)
+
+	// Split state into batches and send to the UI
+	end := false
+	batchSize := 0
+	totalNodesProcessed := 0
+	nodeState := make(map[string]simulator.InitialNodeState, maxBatchSize)
+	for name, node := range state.Nodes {
+		batchSize++
+		totalNodesProcessed++
+		if totalNodesProcessed == len(state.Nodes) {
+			end = true
+		}
+
+		// Peer Links
+		var peerConns []simulator.PeerInfo
+		for port, conn := range node.Connections {
+			peerConns = append(peerConns, simulator.PeerInfo{ID: conn, Port: port})
+		}
+
+		var snakeEntries []simulator.SnakeRouteEntry
+		for entry, peer := range node.SnakeEntries {
+			snakeEntries = append(snakeEntries, simulator.SnakeRouteEntry{EntryID: entry, PeerID: peer})
+		}
+
+		var broadcastEntries []simulator.BroadcastEntry
+		for entry, timestamp := range node.BroadcastsReceived {
+			broadcastEntries = append(broadcastEntries, simulator.BroadcastEntry{PeerID: entry, Time: timestamp})
+		}
+
+		var bandwidthReports simulator.BandwidthReports
+		for _, report := range node.BandwidthReports {
+			if report.ReceiveTime != 0 {
+				bandwidthReports = append(bandwidthReports, report)
+			}
+		}
+
+		nodeState[name] = simulator.InitialNodeState{
+			PublicKey: node.PeerID,
+			NodeType:  node.NodeType,
+			RootState: simulator.RootState{
+				Root:        node.Announcement.Root,
+				AnnSequence: node.Announcement.Sequence,
+				AnnTime:     node.Announcement.Time,
+				Coords:      node.Coords,
+			},
+			Peers:              peerConns,
+			TreeParent:         node.Parent,
+			SnakeAsc:           node.AscendingPeer,
+			SnakeAscPath:       node.AscendingPathID,
+			SnakeDesc:          node.DescendingPeer,
+			SnakeDescPath:      node.DescendingPathID,
+			SnakeEntries:       snakeEntries,
+			BroadcastsReceived: broadcastEntries,
+			BandwidthReports:   bandwidthReports,
+		}
+
+		if batchSize == int(maxBatchSize) || end {
+			// Send batch
+			if err := conn.WriteJSON(simulator.InitialStateMsg{
+				MsgID:               simulator.SimInitialState,
+				Nodes:               nodeState,
+				End:                 end,
+				BWReportingInterval: int(router.BWReportingInterval.Seconds()),
+			}); err != nil {
+				log.Println(err)
+				return
+			}
+
+			// Reset Batch Info
+			batchSize = 0
+			nodeState = make(map[string]simulator.InitialNodeState, maxBatchSize)
+		}
+	}
+
+	// In the case the sim starts with an empty graph, send an empty initial state message
+	// to let the UI know it can begin processing updates.
+	if len(state.Nodes) == 0 {
+		if err := conn.WriteJSON(simulator.InitialStateMsg{
+			MsgID:               simulator.SimInitialState,
+			Nodes:               map[string]simulator.InitialNodeState{},
+			End:                 true,
+			BWReportingInterval: int(router.BWReportingInterval.Seconds()),
+		}); err != nil {
+			log.Println(err)
+			return
+		}
+	}
+
+	// Send current ping state
+	if err := conn.WriteJSON(simulator.StateUpdateMsg{
+		MsgID: simulator.SimStateUpdate,
+		Event: simulator.SimEventMsg{
+			UpdateID: simulator.SimPingStateUpdated,
+			Event: simulator.PingStateUpdate{
+				Enabled: sim.PingingEnabled(),
+				Active:  sim.PingingActive(),
+			},
+		},
+	}); err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Send current network stats
+	stretch := sim.CalculateStretch()
+	if err := conn.WriteJSON(simulator.StateUpdateMsg{
+		MsgID: simulator.SimStateUpdate,
+		Event: simulator.SimEventMsg{
+			UpdateID: simulator.SimNetworkStatsUpdated,
+			Event: simulator.NetworkStatsUpdate{
+				PathConvergence: uint64(sim.CalculatePathConvergence()),
+				AverageStretch:  stretch,
+			}},
+	}); err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Start event handler for future sim events
+	handleSimEvents(log, conn, ch)
+	log.Printf("Closing WsSimReporter::%d\n", connID)
+}
+
+func handleSimEvents(log *log.Logger, conn *websocket.Conn, ch <-chan simulator.SimEvent) {
+	for {
+		event := <-ch
+		eventType := simulator.UnknownUpdate
+		switch event.(type) {
+		case simulator.NodeAdded:
+			eventType = simulator.SimNodeAdded
+		case simulator.NodeRemoved:
+			eventType = simulator.SimNodeRemoved
+		case simulator.PeerAdded:
+			eventType = simulator.SimPeerAdded
+		case simulator.PeerRemoved:
+			eventType = simulator.SimPeerRemoved
+		case simulator.TreeParentUpdate:
+			eventType = simulator.SimTreeParentUpdated
+		case simulator.SnakeAscUpdate:
+			eventType = simulator.SimSnakeAscUpdated
+		case simulator.SnakeDescUpdate:
+			eventType = simulator.SimSnakeDescUpdated
+		case simulator.TreeRootAnnUpdate:
+			eventType = simulator.SimTreeRootAnnUpdated
+		case simulator.SnakeEntryAdded:
+			eventType = simulator.SimSnakeEntryAdded
+		case simulator.SnakeEntryRemoved:
+			eventType = simulator.SimSnakeEntryRemoved
+		case simulator.PingStateUpdate:
+			eventType = simulator.SimPingStateUpdated
+		case simulator.NetworkStatsUpdate:
+			eventType = simulator.SimNetworkStatsUpdated
+		case simulator.BroadcastReceived:
+			eventType = simulator.SimBroadcastReceived
+		case simulator.BandwidthReport:
+			eventType = simulator.SimBandwidthReport
+		}
+
+		if err := conn.WriteJSON(simulator.StateUpdateMsg{
+			MsgID: simulator.SimStateUpdate,
+			Event: simulator.SimEventMsg{
+				UpdateID: eventType,
+				Event:    event,
+			}}); err != nil {
+			log.Println(err)
+			return
+		}
+	}
+}
+
+func userProxyCommander(conn *websocket.Conn, connID uint64, sim *simulator.Simulator) {
+	log := log.New(os.Stdout, fmt.Sprintf("\u001b[38;5;220mWsSimCommander::%d ***\u001b[0m ", connID), 0)
+	log.Println("Listening to ui for commands...")
+
+	for {
+		var eventSequence simulator.SimCommandSequenceMsg
+		if err := conn.ReadJSON(&eventSequence); err != nil {
+			log.Println(err)
+			if strings.Contains(err.Error(), "unmarshal") {
+				continue
+			} else {
+				log.Printf("Unhandled websocket failure, closing WsSimCommander::%d\n", connID)
+				return
+			}
+		}
+
+		// Unmarshall the events into meaningful structs
+		var commands []simulator.SimCommand
+		for i, event := range eventSequence.Events {
+			command, err := simulator.UnmarshalCommandJSON(&event)
+
+			if err != nil {
+				escapedErr := strings.Replace(err.Error(), "\n", "", -1)
+				escapedErr = strings.Replace(escapedErr, "\r", "", -1)
+				log.Printf("Index %d: %v", i, escapedErr)
+				continue
+			}
+
+			commands = append(commands, command)
+		}
+
+		if len(commands) > 0 {
+			k := 0
+			keepCommand := func(i int, cmd simulator.SimCommand) {
+				if i != k {
+					commands[k] = cmd
+				}
+				k++
+			}
+			for i, cmd := range commands {
+				switch cmd.(type) {
+				case simulator.Play:
+					if len(commands) > 1 {
+						log.Println("Play removed from sequence")
+					} else {
+						cmd.Run(log, sim)
+					}
+				case simulator.Pause:
+					if len(commands) > 1 {
+						log.Println("Pause removed from sequence")
+					} else {
+						cmd.Run(log, sim)
+					}
+				default:
+					keepCommand(i, cmd)
+				}
+			}
+
+			commands = commands[:k]
+
+			if len(commands) > 0 {
+				log.Printf("Adding the following commands to be played: %v", commands)
+				sim.AddToPlaylist(commands)
+			}
+		}
+	}
+}
