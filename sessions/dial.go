@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/matrix-org/xproto/types"
+	"github.com/withqb/xproto/types"
 )
 
 // DialContext dials a given public key using the supplied network.

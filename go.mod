@@ -1,4 +1,4 @@
-module github.com/matrix-org/xproto
+module github.com/withqb/xproto
 
 go 1.21
 

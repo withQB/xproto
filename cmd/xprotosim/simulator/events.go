@@ -1,6 +1,6 @@
 package simulator
 
-import "github.com/matrix-org/xproto/router/events"
+import "github.com/withqb/xproto/router/events"
 
 type SimEvent interface {
 	isEvent()

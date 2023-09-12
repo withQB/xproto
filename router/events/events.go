@@ -1,7 +1,7 @@
 package events
 
 import (
-	"github.com/matrix-org/xproto/types"
+	"github.com/withqb/xproto/types"
 )
 
 type Event interface {

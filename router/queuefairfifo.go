@@ -19,7 +19,7 @@ import (
 	"math/rand"
 	"sync"
 
-	"github.com/matrix-org/xproto/types"
+	"github.com/withqb/xproto/types"
 )
 
 const fairFIFOQueueSize = 16

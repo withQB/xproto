@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/Arceliar/phony"
-	"github.com/matrix-org/xproto/cmd/xprotosim/simulator/adversary"
-	"github.com/matrix-org/xproto/router"
-	"github.com/matrix-org/xproto/router/events"
+	"github.com/withqb/xproto/cmd/xprotosim/simulator/adversary"
+	"github.com/withqb/xproto/router"
+	"github.com/withqb/xproto/router/events"
 )
 
 func (sim *Simulator) Node(t string) *Node {

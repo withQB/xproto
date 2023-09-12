@@ -29,9 +29,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/matrix-org/xproto/router"
-	"github.com/matrix-org/xproto/types"
 	"github.com/quic-go/quic-go"
+	"github.com/withqb/xproto/router"
+	"github.com/withqb/xproto/types"
 )
 
 type Sessions struct {

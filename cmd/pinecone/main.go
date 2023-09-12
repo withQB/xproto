@@ -16,10 +16,10 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/matrix-org/xproto/connections"
-	"github.com/matrix-org/xproto/multicast"
-	"github.com/matrix-org/xproto/router"
-	"github.com/matrix-org/xproto/util"
+	"github.com/withqb/xproto/connections"
+	"github.com/withqb/xproto/multicast"
+	"github.com/withqb/xproto/router"
+	"github.com/withqb/xproto/util"
 )
 
 func main() {

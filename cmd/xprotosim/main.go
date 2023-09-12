@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/matrix-org/xproto/cmd/xprotosim/simulator"
-	"github.com/matrix-org/xproto/router"
-	"github.com/matrix-org/xproto/util"
+	"github.com/withqb/xproto/cmd/xprotosim/simulator"
+	"github.com/withqb/xproto/router"
+	"github.com/withqb/xproto/util"
 	"go.uber.org/atomic"
 
 	"net/http"

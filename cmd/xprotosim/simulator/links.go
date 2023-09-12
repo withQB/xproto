@@ -5,8 +5,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/matrix-org/xproto/router"
-	"github.com/matrix-org/xproto/util"
+	"github.com/withqb/xproto/router"
+	"github.com/withqb/xproto/util"
 )
 
 func (sim *Simulator) ConnectNodes(a, b string) error {

@@ -3,7 +3,7 @@ package util
 import (
 	"crypto/ed25519"
 
-	"github.com/matrix-org/xproto/types"
+	"github.com/withqb/xproto/types"
 )
 
 func LessThan(first, second types.PublicKey) bool {

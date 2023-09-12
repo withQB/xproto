@@ -19,7 +19,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/matrix-org/xproto/types"
+	"github.com/withqb/xproto/types"
 )
 
 type PingType uint8

@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/Arceliar/phony"
-	"github.com/matrix-org/xproto/router/events"
-	"github.com/matrix-org/xproto/types"
+	"github.com/withqb/xproto/router/events"
+	"github.com/withqb/xproto/types"
 	"go.uber.org/atomic"
 )
 

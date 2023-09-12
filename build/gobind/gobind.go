@@ -10,10 +10,10 @@ import (
 	"sync"
 	"time"
 
-	xprotoConnections "github.com/matrix-org/xproto/connections"
-	xprotoMulticast "github.com/matrix-org/xproto/multicast"
-	xprotoRouter "github.com/matrix-org/xproto/router"
-	"github.com/matrix-org/xproto/types"
+	xprotoConnections "github.com/withqb/xproto/connections"
+	xprotoMulticast "github.com/withqb/xproto/multicast"
+	xprotoRouter "github.com/withqb/xproto/router"
+	"github.com/withqb/xproto/types"
 
 	_ "golang.org/x/mobile/bind"
 )

@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/matrix-org/xproto/cmd/xprotosim/simulator/adversary"
-	"github.com/matrix-org/xproto/router"
-	"github.com/matrix-org/xproto/router/events"
-	"github.com/matrix-org/xproto/types"
+	"github.com/withqb/xproto/cmd/xprotosim/simulator/adversary"
+	"github.com/withqb/xproto/router"
+	"github.com/withqb/xproto/router/events"
+	"github.com/withqb/xproto/types"
 )
 
 type SimRouter interface {

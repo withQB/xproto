@@ -3,7 +3,7 @@ package router
 import (
 	"sync"
 
-	"github.com/matrix-org/xproto/types"
+	"github.com/withqb/xproto/types"
 )
 
 var frameBufferPool = &sync.Pool{

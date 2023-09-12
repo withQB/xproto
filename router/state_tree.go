@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/Arceliar/phony"
-	"github.com/matrix-org/xproto/router/events"
-	"github.com/matrix-org/xproto/types"
+	"github.com/withqb/xproto/router/events"
+	"github.com/withqb/xproto/types"
 )
 
 // NOTE: Functions prefixed with an underscore (_) are only safe to be called

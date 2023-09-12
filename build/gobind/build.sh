@@ -6,9 +6,9 @@ while getopts "aim" option
 do
     case "$option"
     in
-    a) gomobile bind -v -target android -trimpath -ldflags="-s -w" github.com/matrix-org/xproto/build/gobind ;;
-    i) gomobile bind -v -target ios -trimpath -ldflags="" github.com/matrix-org/xproto/build/gobind ;;
-    m) gomobile bind -v -target macos -trimpath -ldflags="" github.com/matrix-org/xproto/build/gobind ;;
+    a) gomobile bind -v -target android -trimpath -ldflags="-s -w" github.com/withqb/xproto/build/gobind ;;
+    i) gomobile bind -v -target ios -trimpath -ldflags="" github.com/withqb/xproto/build/gobind ;;
+    m) gomobile bind -v -target macos -trimpath -ldflags="" github.com/withqb/xproto/build/gobind ;;
     *) echo "No target specified, specify -a or -i"; exit 1 ;;
     esac
 done

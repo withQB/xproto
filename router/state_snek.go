@@ -4,8 +4,8 @@ import (
 	"crypto/ed25519"
 	"time"
 
-	"github.com/matrix-org/xproto/types"
-	"github.com/matrix-org/xproto/util"
+	"github.com/withqb/xproto/types"
+	"github.com/withqb/xproto/util"
 )
 
 // NOTE: Functions prefixed with an underscore (_) are only safe to be called

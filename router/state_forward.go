@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/matrix-org/xproto/types"
+	"github.com/withqb/xproto/types"
 )
 
 type FloodType int

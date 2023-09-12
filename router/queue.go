@@ -14,7 +14,7 @@
 
 package router
 
-import "github.com/matrix-org/xproto/types"
+import "github.com/withqb/xproto/types"
 
 type queue interface {
 	queuecount() int

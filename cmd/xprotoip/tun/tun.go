@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/matrix-org/xproto/router"
-	"github.com/matrix-org/xproto/types"
+	"github.com/withqb/xproto/router"
+	"github.com/withqb/xproto/types"
 
 	wgtun "golang.zx2c4.com/wireguard/tun"
 )

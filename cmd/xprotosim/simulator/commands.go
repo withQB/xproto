@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/matrix-org/xproto/cmd/xprotosim/simulator/adversary"
-	"github.com/matrix-org/xproto/types"
+	"github.com/withqb/xproto/cmd/xprotosim/simulator/adversary"
+	"github.com/withqb/xproto/types"
 )
 
 const FAILURE_PREAMBLE = "Failed unmarshalling event: "

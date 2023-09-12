@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/matrix-org/xproto/router"
-	"github.com/matrix-org/xproto/router/events"
-	"github.com/matrix-org/xproto/types"
+	"github.com/withqb/xproto/router"
+	"github.com/withqb/xproto/router/events"
+	"github.com/withqb/xproto/types"
 	"go.uber.org/atomic"
 )
 

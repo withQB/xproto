@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/matrix-org/xproto/router"
-	"github.com/matrix-org/xproto/types"
+	"github.com/withqb/xproto/router"
+	"github.com/withqb/xproto/types"
 	"go.uber.org/atomic"
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"

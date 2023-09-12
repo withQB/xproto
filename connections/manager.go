@@ -24,8 +24,8 @@ import (
 	"time"
 
 	"github.com/Arceliar/phony"
-	"github.com/matrix-org/xproto/router"
-	"github.com/matrix-org/xproto/types"
+	"github.com/withqb/xproto/router"
+	"github.com/withqb/xproto/types"
 	"nhooyr.io/websocket"
 )
 
