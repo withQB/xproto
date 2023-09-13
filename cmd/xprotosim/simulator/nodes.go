@@ -22,7 +22,7 @@ func (sim *Simulator) Node(t string) *Node {
 
 func (sim *Simulator) CreateNode(t string, nodeType APINodeType) error {
 	if _, ok := sim.nodes[t]; ok {
-		return fmt.Errorf("%s already exists!", t)
+		return fmt.Errorf("%s already exists", t)
 	}
 
 	var l *net.TCPListener
@@ -153,7 +153,7 @@ func (sim *Simulator) ConfigureFilterDefaults(node string, rates adversary.DropR
 func (sim *Simulator) ConfigureFilterPeer(node string, peer string, rates adversary.DropRates) {
 	peerNode, exists := sim.Nodes()[peer]
 	if !exists {
-		log.Println("Failed configuring filters for peer. Key too long")
+		log.Println("failed configuring filters for peer. Key too long")
 		return
 	}
 

@@ -14,14 +14,18 @@ type NodeAdded struct {
 }
 
 // Tag NodeAdded as an Event
-func (e NodeAdded) isEvent() {}
+func (e NodeAdded) isEvent() {
+	// 
+}
 
 type NodeRemoved struct {
 	Node string
 }
 
 // Tag NodeRemoved as an Event
-func (e NodeRemoved) isEvent() {}
+func (e NodeRemoved) isEvent() {
+	//
+}
 
 type PeerAdded struct {
 	Node string
@@ -30,7 +34,9 @@ type PeerAdded struct {
 }
 
 // Tag PeerAdded as an Event
-func (e PeerAdded) isEvent() {}
+func (e PeerAdded) isEvent() {
+	//
+}
 
 type PeerRemoved struct {
 	Node string
@@ -38,7 +44,9 @@ type PeerRemoved struct {
 }
 
 // Tag PeerRemoved as an Event
-func (e PeerRemoved) isEvent() {}
+func (e PeerRemoved) isEvent() {
+	//
+}
 
 type TreeParentUpdate struct {
 	Node string
@@ -47,7 +55,9 @@ type TreeParentUpdate struct {
 }
 
 // Tag TreeParentUpdate as an Event
-func (e TreeParentUpdate) isEvent() {}
+func (e TreeParentUpdate) isEvent() {
+	//
+}
 
 type SnakeAscUpdate struct {
 	Node   string
@@ -57,7 +67,9 @@ type SnakeAscUpdate struct {
 }
 
 // Tag SnakeAscUpdate as an Event
-func (e SnakeAscUpdate) isEvent() {}
+func (e SnakeAscUpdate) isEvent() {
+	//
+}
 
 type SnakeDescUpdate struct {
 	Node   string
@@ -67,7 +79,9 @@ type SnakeDescUpdate struct {
 }
 
 // Tag SnakeDescUpdate as an Event
-func (e SnakeDescUpdate) isEvent() {}
+func (e SnakeDescUpdate) isEvent() {
+	//
+}
 
 type TreeRootAnnUpdate struct {
 	Node     string
@@ -78,7 +92,9 @@ type TreeRootAnnUpdate struct {
 }
 
 // Tag TreeRootAnnUpdate as an Event
-func (e TreeRootAnnUpdate) isEvent() {}
+func (e TreeRootAnnUpdate) isEvent() {
+	//
+}
 
 type PingStateUpdate struct {
 	Enabled bool
@@ -86,7 +102,9 @@ type PingStateUpdate struct {
 }
 
 // Tag PingStateUpdate as an Event
-func (e PingStateUpdate) isEvent() {}
+func (e PingStateUpdate) isEvent() {
+	//
+}
 
 type NetworkStatsUpdate struct {
 	PathConvergence uint64
@@ -94,7 +112,9 @@ type NetworkStatsUpdate struct {
 }
 
 // Tag NetworkStatsUpdate as an Event
-func (e NetworkStatsUpdate) isEvent() {}
+func (e NetworkStatsUpdate) isEvent() {
+	//
+}
 
 type SnakeEntryAdded struct {
 	Node    string
@@ -103,7 +123,9 @@ type SnakeEntryAdded struct {
 }
 
 // Tag SnakeEntryAdded as an Event
-func (e SnakeEntryAdded) isEvent() {}
+func (e SnakeEntryAdded) isEvent() {
+	//
+}
 
 type SnakeEntryRemoved struct {
 	Node    string
@@ -111,7 +133,9 @@ type SnakeEntryRemoved struct {
 }
 
 // Tag SnakeEntryRemoved as an Event
-func (e SnakeEntryRemoved) isEvent() {}
+func (e SnakeEntryRemoved) isEvent() {
+	//
+}
 
 type BroadcastReceived struct {
 	Node   string
@@ -120,7 +144,9 @@ type BroadcastReceived struct {
 }
 
 // Tag BroadcastReceived as an Event
-func (e BroadcastReceived) isEvent() {}
+func (e BroadcastReceived) isEvent() {
+	//
+}
 
 type BandwidthReport struct {
 	Node      string
@@ -128,7 +154,9 @@ type BandwidthReport struct {
 }
 
 // Tag BandwidthReport as an Event
-func (e BandwidthReport) isEvent() {}
+func (e BandwidthReport) isEvent() {
+	//
+}
 
 type eventHandler struct {
 	node string
@@ -149,7 +177,7 @@ func (h eventHandler) Run(quit <-chan bool, sim *Simulator) {
 			case events.TreeParentUpdate:
 				sim.handleTreeParentUpdate(h.node, e.PeerID)
 			case events.SnakeDescUpdate:
-				sim.handleSnakeDescUpdate(h.node, e.PeerID, "") // TODO: do we need the path ID?
+				sim.handleSnakeDescUpdate(h.node, e.PeerID, "") // TDO: do we need the path ID?
 			case events.TreeRootAnnUpdate:
 				sim.handleTreeRootAnnUpdate(h.node, e.Root, e.Sequence, e.Time, e.Coords)
 			case events.SnakeEntryAdded:

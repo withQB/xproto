@@ -319,7 +319,7 @@ func (m *Multicast) startIPv4(intf *multicastInterface) {
 		if err != nil {
 			srcaddr = net.ParseIP(strings.Split(ifaddr.String(), "%")[0])
 			if srcaddr == nil {
-				// m.log.Println("Failed parsing ifaddr", err)
+				// m.log.Println("failed parsing ifaddr", err)
 				continue
 			}
 		}
@@ -381,7 +381,7 @@ func (m *Multicast) startIPv6(intf *multicastInterface) {
 		if err != nil {
 			srcaddr = net.ParseIP(strings.Split(ifaddr.String(), "%")[0])
 			if srcaddr == nil {
-				// m.log.Println("Failed parsing ifaddr", err)
+				// m.log.Println("failed parsing ifaddr", err)
 				continue
 			}
 		}

@@ -263,7 +263,7 @@ type AddNode struct {
 func (c AddNode) Run(log *log.Logger, sim *Simulator) {
 	log.Printf("Executing command %s", c)
 	if err := sim.CreateNode(c.Node, c.NodeType); err != nil {
-		log.Printf("Failed creating new node %s: %s", c.Node, err)
+		log.Printf("failed creating new node %s: %s", c.Node, err)
 		return
 	}
 
@@ -297,7 +297,7 @@ type AddPeer struct {
 func (c AddPeer) Run(log *log.Logger, sim *Simulator) {
 	log.Printf("Executing command %s", c)
 	if err := sim.ConnectNodes(c.Node, c.Peer); err != nil {
-		log.Printf("Failed connecting node %s to node %s: %s", c.Node, c.Peer, err)
+		log.Printf("failed connecting node %s to node %s: %s", c.Node, c.Peer, err)
 	}
 	sim.GenerateNetworkGraph()
 	sim.UpdateRealDistances()
@@ -316,7 +316,7 @@ type RemovePeer struct {
 func (c RemovePeer) Run(log *log.Logger, sim *Simulator) {
 	log.Printf("Executing command %s", c)
 	if err := sim.DisconnectNodes(c.Node, c.Peer); err != nil {
-		log.Printf("Failed disconnecting node %s and node %s: %s", c.Node, c.Peer, err)
+		log.Printf("failed disconnecting node %s and node %s: %s", c.Node, c.Peer, err)
 	}
 	sim.GenerateNetworkGraph()
 	sim.UpdateRealDistances()

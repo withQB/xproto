@@ -99,12 +99,12 @@ func main() {
 			logger.Println("Requested profile:", fn)
 			fp, err := os.Create(fn)
 			if err != nil {
-				logger.Println("Failed to create profile:", err)
+				logger.Println("failed to create profile:", err)
 				return
 			}
 			defer fp.Close()
 			if err := pprof.StartCPUProfile(fp); err != nil {
-				logger.Println("Failed to start profiling:", err)
+				logger.Println("failed to start profiling:", err)
 				return
 			}
 			time.AfterFunc(time.Second*10, func() {

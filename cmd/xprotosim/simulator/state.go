@@ -165,7 +165,7 @@ func (s *StateAccessor) GetLinkCount() float64 {
 
 func (s *StateAccessor) GetNodeName(peerID string) (string, error) {
 	node := ""
-	err := fmt.Errorf("Provided peerID is not associated with a known node")
+	err := fmt.Errorf("provided peerID is not associated with a known node")
 
 	phony.Block(s, func() {
 		for k, v := range s._state.Nodes {

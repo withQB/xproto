@@ -40,7 +40,7 @@ var FrameMagicBytes = []byte{0x70, 0x69, 0x6e, 0x65}
 // 4 magic bytes, 1 byte version, 1 byte type, 2 bytes extra, 2 bytes frame length
 const FrameHeaderLength = 10
 
-// TODO: what should this be for the network visibility horizon to be what we desire?
+// TDO: what should this be for the network visibility horizon to be what we desire?
 // ie. 2-hop 100%, 5-hop >90%, etc.
 const MaxHopLimit = 10
 const NetworkHorizonDistance = 5

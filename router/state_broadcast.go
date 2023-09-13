@@ -80,7 +80,7 @@ func (s *state) _createBroadcastFrame() (*types.Frame, error) {
 func (s *state) _sendWakeupBroadcasts() {
 	broadcast, err := s._createBroadcastFrame()
 	if err != nil {
-		s.r.log.Println("Failed creating broadcast frame:", err)
+		s.r.log.Println("failed creating broadcast frame:", err)
 	}
 
 	s._flood(s.r.local, broadcast, ClassicFlood)

@@ -37,7 +37,7 @@ func (s *state) _forward(p *peer, f *types.Frame) error {
 	// Allow overlay loopback traffic by directly forwarding it to the local router.
 	if f.Type.IsTraffic() && f.DestinationKey == s.r.public {
 		if len(f.Source) > 0 {
-			// TODO: There's a potential security risk here in that currently a node
+			// TDO: There's a potential security risk here in that currently a node
 			// on the path could modify the source coordinates and that would cause
 			// return traffic to be redirected via a different route. The obvious
 			// solution here is to "seal" the source key and coordinates in the packet
