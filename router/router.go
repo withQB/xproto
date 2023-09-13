@@ -7,7 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"io/ioutil"
+
 	"log"
 	"net"
 	"os"
@@ -38,7 +38,7 @@ type Router struct {
 
 func NewRouter(logger types.Logger, sk ed25519.PrivateKey, opts ...RouterOption) *Router {
 	if logger == nil {
-		logger = log.New(ioutil.Discard, "", 0)
+		logger = log.New(io.Discard, "", 0)
 	}
 	blackhole := false
 	for _, opt := range opts {

@@ -33,7 +33,7 @@ func (q *fifoQueue) _initialise() {
 		// Make space for one extra entry in the capacity, since
 		// every push appends a new channel. To prevent reallocating
 		// the whole slice when we hit q.max to increase capacity,
-		// make sure there's room for that trailing entry.
+		// make sure there's frame for that trailing entry.
 		q.entries = make([]chan *types.Frame, 1, q.max+1)
 		q.entries[0] = make(chan *types.Frame, 1)
 	} else {

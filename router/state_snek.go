@@ -8,7 +8,7 @@ import (
 	"github.com/withqb/xproto/util"
 )
 
-// NOTE: Functions prefixed with an underscore (_) are only safe to be called
+// NOT E: Functions prefixed with an underscore (_) are only safe to be called
 // from the actor that owns them, in order to prevent data races.
 
 type virtualSnakeTable map[virtualSnakeIndex]*virtualSnakeEntry
